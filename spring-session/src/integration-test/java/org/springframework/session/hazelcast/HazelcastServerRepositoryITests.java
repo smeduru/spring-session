@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,14 @@ import org.junit.runner.RunWith;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.session.ExpiringSession;
 import org.springframework.session.hazelcast.config.annotation.web.http.EnableHazelcastHttpSession;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 /**
- * Integration tests that check the underlying data source - in this case
- * Hazelcast Server.
+ * Integration tests that check the underlying data source - in this case Hazelcast
+ * Server.
  *
  * @author Tommy Ludwig
  * @author Vedran Pavic
@@ -37,8 +36,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @WebAppConfiguration
-public class HazelcastServerRepositoryITests<S extends ExpiringSession>
-		extends AbstractHazelcastRepositoryITests<S> {
+public class HazelcastServerRepositoryITests extends AbstractHazelcastRepositoryITests {
 
 	@EnableHazelcastHttpSession
 	@Configuration

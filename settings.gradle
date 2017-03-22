@@ -2,22 +2,37 @@ rootProject.name = 'spring-session-build'
 
 include 'docs'
 
-include 'samples:boot'
-include 'samples:custom-cookie'
-include 'samples:findbyusername'
-include 'samples:hazelcast'
-include 'samples:hazelcast-spring'
-include 'samples:httpsession'
-include 'samples:httpsession-gemfire-clientserver'
-include 'samples:httpsession-gemfire-clientserver-xml'
-include 'samples:httpsession-gemfire-p2p'
-include 'samples:httpsession-gemfire-p2p-xml'
-include 'samples:httpsession-xml'
-include 'samples:rest'
-include 'samples:security'
-include 'samples:users'
-include 'samples:websocket'
-
 include 'spring-session'
 include 'spring-session-data-gemfire'
+include 'spring-session-data-mongo'
 include 'spring-session-data-redis'
+include 'spring-session-hazelcast'
+include 'spring-session-jdbc'
+
+includeSamples("samples" + File.separator + "boot")
+includeSamples("samples" + File.separator + "javaconfig")
+includeSamples("samples" + File.separator + "misc")
+includeSamples("samples" + File.separator + "xml")
+
+void includeSamples(String samplesDir) {
+	FileTree tree = fileTree(samplesDir) {
+		include '**' + File.separator + '*.gradle'
+		exclude 'grails3'
+	}
+	tree.each {File file ->
+		String projectDir = file.path.substring(file.path.indexOf(samplesDir), file.path.lastIndexOf(File.separator))
+		String projectPath = projectDir.substring(projectDir.lastIndexOf(File.separator) + 1)
+		String projectNamePrefix = samplesDir.substring(samplesDir.lastIndexOf(File.separator) + 1).toLowerCase();
+
+		include projectPath
+
+		def project = findProject(":${projectPath}")
+
+		project.name = "spring-session-samples-${projectNamePrefix}-${project.name}"
+		project.projectDir = new File(settingsDir, projectDir)
+
+		if (!project.buildFile.exists()) {
+			project.buildFileName = file.path.substring(file.path.lastIndexOf(File.separator) + 1)
+		}
+	}
+}

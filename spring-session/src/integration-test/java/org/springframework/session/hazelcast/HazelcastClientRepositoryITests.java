@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,24 @@
 
 package org.springframework.session.hazelcast;
 
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.session.ExpiringSession;
 import org.springframework.session.hazelcast.config.annotation.web.http.EnableHazelcastHttpSession;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.util.SocketUtils;
 
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.core.HazelcastInstance;
-
 /**
- * Integration tests that check the underlying data source - in this case
- * Hazelcast Client.
+ * Integration tests that check the underlying data source - in this case Hazelcast
+ * Client.
  *
  * @author Vedran Pavic
  * @author Artem Bilan
@@ -44,13 +42,11 @@ import com.hazelcast.core.HazelcastInstance;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @WebAppConfiguration
-public class HazelcastClientRepositoryITests<S extends ExpiringSession>
-		extends AbstractHazelcastRepositoryITests<S> {
+public class HazelcastClientRepositoryITests extends AbstractHazelcastRepositoryITests {
 
 	private static final int PORT = SocketUtils.findAvailableTcpPort();
 
 	private static HazelcastInstance hazelcastInstance;
-
 
 	@BeforeClass
 	public static void setup() {
@@ -59,7 +55,7 @@ public class HazelcastClientRepositoryITests<S extends ExpiringSession>
 
 	@AfterClass
 	public static void teardown() {
-		if(hazelcastInstance != null) {
+		if (hazelcastInstance != null) {
 			hazelcastInstance.shutdown();
 		}
 	}
@@ -71,8 +67,7 @@ public class HazelcastClientRepositoryITests<S extends ExpiringSession>
 		@Bean
 		public HazelcastInstance embeddedHazelcastClient() {
 			ClientConfig clientConfig = new ClientConfig();
-			clientConfig.getNetworkConfig()
-					.addAddress("127.0.0.1:" + PORT);
+			clientConfig.getNetworkConfig().addAddress("127.0.0.1:" + PORT);
 			return HazelcastClient.newHazelcastClient(clientConfig);
 		}
 

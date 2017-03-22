@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,37 +19,37 @@ package org.springframework.session.data.gemfire;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.geode.cache.query.SelectResults;
+
 import org.springframework.data.gemfire.GemfireOperations;
 import org.springframework.session.ExpiringSession;
-
-import com.gemstone.gemfire.cache.query.SelectResults;
+import org.springframework.session.SessionRepository;
 
 /**
- * The GemFireOperationsSessionRepository class is a Spring SessionRepository implementation that interfaces with
- * and uses GemFire to back and store Spring Sessions.
+ * The {@link GemFireOperationsSessionRepository} class is a Spring {@link SessionRepository} implementation
+ * that interfaces with and uses GemFire to back and store Spring Sessions.
  *
  * @author John Blum
+ * @since 1.1.0
  * @see org.springframework.data.gemfire.GemfireOperations
  * @see org.springframework.session.ExpiringSession
- * @see org.springframework.session.Session
  * @see org.springframework.session.data.gemfire.AbstractGemFireOperationsSessionRepository
- * @since 1.1.0
  */
 public class GemFireOperationsSessionRepository extends AbstractGemFireOperationsSessionRepository {
 
 	// GemFire OQL query used to lookup Sessions by arbitrary attributes.
-	protected static final String FIND_SESSIONS_BY_INDEX_NAME_VALUE_QUERY =
-		"SELECT s FROM %1$s s WHERE s.attributes['%2$s'] = $1";
+	protected static final String FIND_SESSIONS_BY_INDEX_NAME_VALUE_QUERY = "SELECT s FROM %1$s s WHERE s.attributes['%2$s'] = $1";
 
 	// GemFire OQL query used to look up Sessions by principal name.
-	protected static final String FIND_SESSIONS_BY_PRINCIPAL_NAME_QUERY =
-		"SELECT s FROM %1$s s WHERE s.principalName = $1";
+	protected static final String FIND_SESSIONS_BY_PRINCIPAL_NAME_QUERY = "SELECT s FROM %1$s s WHERE s.principalName = $1";
 
 	/**
-	 * Constructs an instance of GemFireOperationsSessionRepository initialized with the required GemfireOperations
-	 * object used to perform data access operations to manage Session state.
+	 * Constructs an instance of GemFireOperationsSessionRepository initialized with the
+	 * required GemfireOperations object used to perform data access operations to manage
+	 * Session state.
 	 *
-	 * @param template the GemfireOperations object used to access and manage Session state in GemFire.
+	 * @param template the GemfireOperations object used to access and manage Session
+	 * state in GemFire.
 	 * @see org.springframework.data.gemfire.GemfireOperations
 	 */
 	public GemFireOperationsSessionRepository(GemfireOperations template) {
@@ -57,11 +57,14 @@ public class GemFireOperationsSessionRepository extends AbstractGemFireOperation
 	}
 
 	/**
-	 * Looks up all available Sessions with the particular attribute indexed by name having the given value.
+	 * Looks up all available Sessions with the particular attribute indexed by name
+	 * having the given value.
 	 *
-	 * @param indexName name of the indexed Session attribute.
-	 * (e.g. {@link org.springframework.session.FindByIndexNameSessionRepository#PRINCIPAL_NAME_INDEX_NAME}).
-	 * @param indexValue value of the indexed Session attribute to search on (e.g. username).
+	 * @param indexName name of the indexed Session attribute. (e.g.
+	 * {@link org.springframework.session.FindByIndexNameSessionRepository#PRINCIPAL_NAME_INDEX_NAME}
+	 * ).
+	 * @param indexValue value of the indexed Session attribute to search on (e.g.
+	 * username).
 	 * @return a mapping of Session ID to Session instances.
 	 * @see org.springframework.session.ExpiringSession
 	 * @see java.util.Map
@@ -80,10 +83,12 @@ public class GemFireOperationsSessionRepository extends AbstractGemFireOperation
 	}
 
 	/**
-	 * Prepares the appropriate GemFire OQL query based on the indexed Session attribute name.
+	 * Prepares the appropriate GemFire OQL query based on the indexed Session attribute
+	 * name.
 	 *
 	 * @param indexName a String indicating the name of the indexed Session attribute.
-	 * @return an appropriate GemFire OQL statement for querying on a particular indexed Session attribute.
+	 * @return an appropriate GemFire OQL statement for querying on a particular indexed
+	 * Session attribute.
 	 */
 	protected String prepareQuery(String indexName) {
 		return (PRINCIPAL_NAME_INDEX_NAME.equals(indexName)
@@ -95,7 +100,7 @@ public class GemFireOperationsSessionRepository extends AbstractGemFireOperation
 	 * Constructs a new {@link ExpiringSession} instance backed by GemFire.
 	 *
 	 * @return an instance of {@link ExpiringSession} backed by GemFire.
-	 * @see org.springframework.session.data.gemfire.GemFireOperationsSessionRepository.GemFireSession#create(int)
+	 * @see AbstractGemFireOperationsSessionRepository.GemFireSession#create(int)
 	 * @see org.springframework.session.ExpiringSession
 	 * @see #getMaxInactiveIntervalInSeconds()
 	 */
@@ -104,12 +109,12 @@ public class GemFireOperationsSessionRepository extends AbstractGemFireOperation
 	}
 
 	/**
-	 * Gets a copy of an existing, non-expired {@link ExpiringSession} by ID.  If the Session is expired,
-	 * then it is deleted.
+	 * Gets a copy of an existing, non-expired {@link ExpiringSession} by ID. If the
+	 * Session is expired, then it is deleted.
 	 *
 	 * @param sessionId a String indicating the ID of the Session to get.
 	 * @return an existing {@link ExpiringSession} by ID or null if not Session exists.
-	 * @see org.springframework.session.data.gemfire.GemFireOperationsSessionRepository.GemFireSession#from(ExpiringSession)
+	 * @see AbstractGemFireOperationsSessionRepository.GemFireSession#from(ExpiringSession)
 	 * @see org.springframework.session.ExpiringSession
 	 * @see #delete(String)
 	 */
@@ -140,8 +145,8 @@ public class GemFireOperationsSessionRepository extends AbstractGemFireOperation
 	}
 
 	/**
-	 * Deletes (removes) any existing {@link ExpiringSession} from GemFire.  This operation also results in
-	 * a SessionDeletedEvent.
+	 * Deletes (removes) any existing {@link ExpiringSession} from GemFire. This operation
+	 * also results in a SessionDeletedEvent.
 	 *
 	 * @param sessionId a String indicating the ID of the Session to remove from GemFire.
 	 * @see org.springframework.data.gemfire.GemfireOperations#remove(Object)
@@ -150,5 +155,4 @@ public class GemFireOperationsSessionRepository extends AbstractGemFireOperation
 	public void delete(String sessionId) {
 		handleDeleted(sessionId, getTemplate().<Object, ExpiringSession>remove(sessionId));
 	}
-
 }

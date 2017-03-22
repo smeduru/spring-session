@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,12 +16,19 @@
 
 package org.springframework.session.data.gemfire.config.annotation.web.http;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Properties;
+
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.DataPolicy;
+import org.apache.geode.cache.ExpirationAction;
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.RegionShortcut;
+import org.apache.geode.cache.query.Index;
+import org.apache.geode.cache.query.QueryService;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.gemfire.CacheFactoryBean;
@@ -33,19 +40,23 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.DataPolicy;
-import com.gemstone.gemfire.cache.ExpirationAction;
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.RegionShortcut;
-import com.gemstone.gemfire.cache.query.Index;
-import com.gemstone.gemfire.cache.query.QueryService;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The GemFireHttpSessionJavaConfigurationTests class...
+ * Integration test to test the configuration of Spring Session backed by GemFire
+ * using Java-based configuration meta-data.
  *
  * @author John Blum
- * @since 1.0.0
+ * @since 1.1.0
+ * @see org.junit.Test
+ * @see org.springframework.session.ExpiringSession
+ * @see org.springframework.session.data.gemfire.AbstractGemFireIntegrationTests
+ * @see org.springframework.test.annotation.DirtiesContext
+ * @see org.springframework.test.context.ContextConfiguration
+ * @see org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+ * @see org.springframework.test.context.web.WebAppConfiguration
+ * @see org.apache.geode.cache.Cache
+ * @see org.apache.geode.cache.Region
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -56,7 +67,9 @@ public class GemFireHttpSessionJavaConfigurationTests extends AbstractGemFireInt
 	@Autowired
 	private Cache gemfireCache;
 
-	protected <K, V> Region<K, V> assertCacheAndRegion(Cache gemfireCache, String regionName, DataPolicy dataPolicy) {
+	protected <K, V> Region<K, V> assertCacheAndRegion(Cache gemfireCache,
+			String regionName, DataPolicy dataPolicy) {
+
 		assertThat(GemFireUtils.isPeer(gemfireCache)).isTrue();
 
 		Region<K, V> region = gemfireCache.getRegion(regionName);
@@ -68,16 +81,16 @@ public class GemFireHttpSessionJavaConfigurationTests extends AbstractGemFireInt
 
 	@Test
 	public void gemfireCacheConfigurationIsValid() {
-		Region<Object, ExpiringSession> example = assertCacheAndRegion(gemfireCache, "Example",
-			DataPolicy.REPLICATE);
+		Region<Object, ExpiringSession> example =
+			assertCacheAndRegion(this.gemfireCache, "JavaExample", DataPolicy.REPLICATE);
 
 		assertEntryIdleTimeout(example, ExpirationAction.INVALIDATE, 900);
 	}
 
 	@Test
 	public void verifyGemFireExampleCacheRegionPrincipalNameIndexWasCreatedSuccessfully() {
-		Region<Object, ExpiringSession> example = assertCacheAndRegion(gemfireCache, "Example",
-			DataPolicy.REPLICATE);
+		Region<Object, ExpiringSession> example =
+			assertCacheAndRegion(this.gemfireCache, "JavaExample", DataPolicy.REPLICATE);
 
 		QueryService queryService = example.getRegionService().getQueryService();
 
@@ -90,8 +103,8 @@ public class GemFireHttpSessionJavaConfigurationTests extends AbstractGemFireInt
 
 	@Test
 	public void verifyGemFireExampleCacheRegionSessionAttributesIndexWasNotCreated() {
-		Region<Object, ExpiringSession> example = assertCacheAndRegion(gemfireCache, "Example",
-			DataPolicy.REPLICATE);
+		Region<Object, ExpiringSession> example =
+			assertCacheAndRegion(this.gemfireCache, "JavaExample", DataPolicy.REPLICATE);
 
 		QueryService queryService = example.getRegionService().getQueryService();
 
@@ -103,16 +116,23 @@ public class GemFireHttpSessionJavaConfigurationTests extends AbstractGemFireInt
 	}
 
 	@EnableGemFireHttpSession(indexableSessionAttributes = {}, maxInactiveIntervalInSeconds = 900,
-		regionName = "Example", serverRegionShortcut = RegionShortcut.REPLICATE)
+		regionName = "JavaExample", serverRegionShortcut = RegionShortcut.REPLICATE)
 	public static class GemFireConfiguration {
 
-		@Bean
 		Properties gemfireProperties() {
 			Properties gemfireProperties = new Properties();
-			gemfireProperties.setProperty("name", GemFireHttpSessionJavaConfigurationTests.class.getName());
+			gemfireProperties.setProperty("name", applicationName());
 			gemfireProperties.setProperty("mcast-port", "0");
-			gemfireProperties.setProperty("log-level", "warning");
+			gemfireProperties.setProperty("log-level", logLevel());
 			return gemfireProperties;
+		}
+
+		String applicationName() {
+			return GemFireHttpSessionJavaConfigurationTests.class.getName();
+		}
+
+		String logLevel() {
+			return "warning";
 		}
 
 		@Bean
@@ -121,10 +141,8 @@ public class GemFireHttpSessionJavaConfigurationTests extends AbstractGemFireInt
 
 			cacheFactory.setClose(true);
 			cacheFactory.setProperties(gemfireProperties());
-			cacheFactory.setUseBeanFactoryLocator(false);
 
 			return cacheFactory;
 		}
 	}
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.session.hazelcast;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.MapAttributeConfig;
+import com.hazelcast.config.MapIndexConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
@@ -27,7 +29,10 @@ import org.springframework.util.SocketUtils;
  *
  * @author Vedran Pavic
  */
-public class HazelcastITestUtils {
+public final class HazelcastITestUtils {
+
+	private HazelcastITestUtils() {
+	}
 
 	/**
 	 * Creates {@link HazelcastInstance} for use in integration tests.
@@ -35,9 +40,20 @@ public class HazelcastITestUtils {
 	 * @return the Hazelcast instance
 	 */
 	public static HazelcastInstance embeddedHazelcastServer(int port) {
+		MapAttributeConfig attributeConfig = new MapAttributeConfig()
+				.setName(HazelcastSessionRepository.PRINCIPAL_NAME_ATTRIBUTE)
+				.setExtractor(PrincipalNameExtractor.class.getName());
+
 		Config config = new Config();
+
 		config.getNetworkConfig()
 				.setPort(port);
+
+		config.getMapConfig("spring:session:sessions")
+				.addMapAttributeConfig(attributeConfig)
+				.addMapIndexConfig(new MapIndexConfig(
+						HazelcastSessionRepository.PRINCIPAL_NAME_ATTRIBUTE, false));
+
 		return Hazelcast.newHazelcastInstance(config);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.session.data.redis;
 
 import org.springframework.session.SessionRepository;
@@ -26,17 +27,16 @@ import org.springframework.session.SessionRepository;
 public enum RedisFlushMode {
 	/**
 	 * Only writes to Redis when
-	 * {@link SessionRepository#save(org.springframework.session.Session)} is
-	 * invoked. In a web environment this is typically done as soon as the HTTP
-	 * response is committed.
+	 * {@link SessionRepository#save(org.springframework.session.Session)} is invoked. In
+	 * a web environment this is typically done as soon as the HTTP response is committed.
 	 */
 	ON_SAVE,
 
 	/**
 	 * Writes to Redis as soon as possible. For example
-	 * {@link SessionRepository#createSession()} will write the session to
-	 * Redis. Another example is that setting an attribute on the session will
-	 * also write to Redis immediately.
+	 * {@link SessionRepository#createSession()} will write the session to Redis. Another
+	 * example is that setting an attribute on the session will also write to Redis
+	 * immediately.
 	 */
 	IMMEDIATE
 }

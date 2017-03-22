@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,6 @@
 
 package org.springframework.session.data.gemfire;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
@@ -27,60 +25,62 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.CacheClosedException;
+import org.apache.geode.cache.DataPolicy;
+import org.apache.geode.cache.ExpirationAction;
+import org.apache.geode.cache.ExpirationAttributes;
+import org.apache.geode.cache.GemFireCache;
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.client.ClientCache;
+import org.apache.geode.cache.client.ClientCacheFactory;
+import org.apache.geode.cache.query.Index;
+import org.apache.geode.cache.server.CacheServer;
+
 import org.junit.Before;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.session.ExpiringSession;
 import org.springframework.session.data.gemfire.support.GemFireUtils;
 import org.springframework.session.events.AbstractSessionEvent;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.CacheClosedException;
-import com.gemstone.gemfire.cache.DataPolicy;
-import com.gemstone.gemfire.cache.ExpirationAction;
-import com.gemstone.gemfire.cache.ExpirationAttributes;
-import com.gemstone.gemfire.cache.GemFireCache;
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.client.ClientCache;
-import com.gemstone.gemfire.cache.client.ClientCacheFactory;
-import com.gemstone.gemfire.cache.query.Index;
-import com.gemstone.gemfire.cache.server.CacheServer;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * AbstractGemFireIntegrationTests is an abstract base class encapsulating common operations for writing
- * Spring Session GemFire integration tests.
+ * {@link AbstractGemFireIntegrationTests} is an abstract base class encapsulating common functionality
+ * for writing Spring Session GemFire integration tests.
  *
  * @author John Blum
- * @see org.springframework.session.ExpiringSession
- * @see org.springframework.session.events.AbstractSessionEvent
- * @see com.gemstone.gemfire.cache.Cache
- * @see com.gemstone.gemfire.cache.DataPolicy
- * @see com.gemstone.gemfire.cache.ExpirationAttributes
- * @see com.gemstone.gemfire.cache.GemFireCache
- * @see com.gemstone.gemfire.cache.Region
- * @see com.gemstone.gemfire.cache.client.ClientCache
- * @see com.gemstone.gemfire.cache.server.CacheServer
  * @since 1.1.0
+ * @see org.apache.geode.cache.Cache
+ * @see org.apache.geode.cache.GemFireCache
+ * @see org.apache.geode.cache.Region
+ * @see org.apache.geode.cache.client.ClientCache
+ * @see org.apache.geode.cache.query.Index
+ * @see org.apache.geode.cache.server.CacheServer
+ * @see org.springframework.session.ExpiringSession
  */
-public class AbstractGemFireIntegrationTests {
+public abstract class AbstractGemFireIntegrationTests {
 
 	protected static final boolean DEFAULT_ENABLE_QUERY_DEBUGGING = false;
+
 	protected static final boolean GEMFIRE_QUERY_DEBUG = Boolean.getBoolean("spring.session.data.gemfire.query.debug");
 
 	protected static final int DEFAULT_GEMFIRE_SERVER_PORT = CacheServer.DEFAULT_PORT;
 
 	protected static final long DEFAULT_WAIT_DURATION = TimeUnit.SECONDS.toMillis(20);
-	protected static final long DEFAULT_WAIT_INTERVAL = 500l;
+	protected static final long DEFAULT_WAIT_INTERVAL = 500L;
 
 	protected static final File WORKING_DIRECTORY = new File(System.getProperty("user.dir"));
 
 	protected static final String DEFAULT_PROCESS_CONTROL_FILENAME = "process.ctl";
 
-	protected static final String GEMFIRE_LOG_FILE_NAME = System.getProperty(
-		"spring.session.data.gemfire.log-file", "server.log");
+	protected static final String GEMFIRE_LOG_FILE_NAME =
+		System.getProperty("spring.session.data.gemfire.log-file", "server.log");
 
-	protected static final String GEMFIRE_LOG_LEVEL = System.getProperty(
-		"spring.session.data.gemfire.log-level", "warning");
+	protected static final String GEMFIRE_LOG_LEVEL =
+		System.getProperty("spring.session.data.gemfire.log-level", "warning");
 
 	@Autowired
 	protected Cache gemfireCache;
@@ -97,8 +97,8 @@ public class AbstractGemFireIntegrationTests {
 	protected static File createDirectory(String pathname) {
 		File directory = new File(WORKING_DIRECTORY, pathname);
 
-		assertThat(directory.isDirectory() || directory.mkdirs()).as(
-			String.format("Failed to create directory (%1$s)", directory)).isTrue();
+		assertThat(directory.isDirectory() || directory.mkdirs())
+			.as(String.format("Failed to create directory (%1$s)", directory)).isTrue();
 
 		directory.deleteOnExit();
 
@@ -157,10 +157,7 @@ public class AbstractGemFireIntegrationTests {
 
 	/* (non-Javadoc) */
 	protected static Process run(Class<?> type, File directory, String... args) throws IOException {
-		return new ProcessBuilder()
-			.command(createJavaProcessCommandLine(type, args))
-			.directory(directory)
-			.start();
+		return new ProcessBuilder().command(createJavaProcessCommandLine(type, args)).directory(directory).start();
 	}
 
 	/* (non-Javadoc) */
@@ -203,7 +200,8 @@ public class AbstractGemFireIntegrationTests {
 		}, duration);
 	}
 
-	// NOTE this method would not be necessary except Spring Sessions' build does not fork the test JVM
+	// NOTE this method would not be necessary except Spring Sessions' build does not fork
+	// the test JVM
 	// for every test class.
 	/* (non-Javadoc) */
 	protected static boolean waitForClientCacheToClose() {
@@ -334,6 +332,7 @@ public class AbstractGemFireIntegrationTests {
 	/* (non-Javadoc) */
 	protected void assertEntryIdleTimeout(ExpirationAttributes actualExpirationAttributes,
 			ExpirationAction expectedAction, int expectedTimeout) {
+
 		assertThat(actualExpirationAttributes).isNotNull();
 		assertThat(actualExpirationAttributes.getAction()).isEqualTo(expectedAction);
 		assertThat(actualExpirationAttributes.getTimeout()).isEqualTo(expectedTimeout);
@@ -355,7 +354,7 @@ public class AbstractGemFireIntegrationTests {
 
 		List<String> regionList = new ArrayList<String>(regions.size());
 
-		for (Region<?,?> region : regions) {
+		for (Region<?, ?> region : regions) {
 			regionList.add(region.getFullPath());
 		}
 
@@ -365,7 +364,7 @@ public class AbstractGemFireIntegrationTests {
 	/* (non-Javadoc) */
 	@SuppressWarnings("unchecked")
 	protected <T extends ExpiringSession> T createSession() {
-		T expiringSession = (T) gemfireSessionRepository.createSession();
+		T expiringSession = (T) this.gemfireSessionRepository.createSession();
 		assertThat(expiringSession).isNotNull();
 		return expiringSession;
 	}
@@ -380,19 +379,19 @@ public class AbstractGemFireIntegrationTests {
 
 	/* (non-Javadoc) */
 	protected <T extends ExpiringSession> T expire(T session) {
-		session.setLastAccessedTime(0l);
+		session.setLastAccessedTime(0L);
 		return session;
 	}
 
 	/* (non-Javadoc) */
 	@SuppressWarnings("unchecked")
 	protected <T extends ExpiringSession> T get(String sessionId) {
-		return (T) gemfireSessionRepository.getSession(sessionId);
+		return (T) this.gemfireSessionRepository.getSession(sessionId);
 	}
 
 	/* (non-Javadoc) */
 	protected <T extends ExpiringSession> T save(T session) {
-		gemfireSessionRepository.save(session);
+		this.gemfireSessionRepository.save(session);
 		return session;
 	}
 
@@ -403,8 +402,8 @@ public class AbstractGemFireIntegrationTests {
 	}
 
 	/**
-	 * The SessionEventListener class is a Spring {@link ApplicationListener} listening for Spring HTTP Session
-	 * application events.
+	 * The SessionEventListener class is a Spring {@link ApplicationListener} listening
+	 * for Spring HTTP Session application events.
 	 *
 	 * @see org.springframework.context.ApplicationListener
 	 * @see org.springframework.session.events.AbstractSessionEvent
@@ -423,14 +422,14 @@ public class AbstractGemFireIntegrationTests {
 
 		/* (non-Javadoc) */
 		public void onApplicationEvent(AbstractSessionEvent event) {
-			sessionEvent = event;
+			this.sessionEvent = event;
 		}
 
 		/* (non-Javadoc) */
 		public <T extends AbstractSessionEvent> T waitForSessionEvent(long duration) {
 			waitOnCondition(new Condition() {
 				public boolean evaluate() {
-					return (sessionEvent != null);
+					return (SessionEventListener.this.sessionEvent != null);
 				}
 			}, duration);
 
@@ -439,10 +438,10 @@ public class AbstractGemFireIntegrationTests {
 	}
 
 	/**
-	 * The Condition interface defines a logical condition that must be satisfied before it is safe to proceed.
+	 * The Condition interface defines a logical condition that must be satisfied before
+	 * it is safe to proceed.
 	 */
 	protected interface Condition {
 		boolean evaluate();
 	}
-
 }
